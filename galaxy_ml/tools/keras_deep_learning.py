@@ -8,8 +8,8 @@ from galaxy_ml.utils import SafeEval, try_get_attr
 
 import six
 
-from tensorflow import keras
-from tensorflow.keras.models import Model, Sequential
+import keras
+from keras.models import Model, Sequential
 
 
 safe_eval = SafeEval()

@@ -69,6 +69,16 @@ A typic machine learning pipeline is composed of a main estimator/model and opti
 
 
 ### Installation
+
+This source version targets Python 3.11, TensorFlow/Keras 2.12 and
+scikit-learn 1.2. Dependency upper bounds preserve the legacy estimator and
+model serialization APIs; newer major versions need a separate migration.
+Previously saved models may need to be retrained with the updated stack.
+
+The Galaxy tool definitions target the unreleased 0.11.0 package and container;
+publish those artifacts before deploying the tools. The local Dockerfile builds
+from this checkout.
+
 APIs for models, preprocessors and utils implemented in Galaxy-ML can be installed separately.
 
 ##### Installing using anaconda (recommended)
@@ -83,12 +93,12 @@ pip install -U Galaxy-ML
 
 ##### Installing from source
 ```
-python setup.py install
+python -m pip install .
 ```
 
 ##### Using source code inplace
 ```
-python install -e .
+python -m pip install -e .
 ```
 
 To install Galaxy-ML tools in Galaxy, please refer to https://galaxyproject.org/admin/tools/add-tool-from-toolshed-tutorial/.
@@ -98,26 +108,26 @@ To install Galaxy-ML tools in Galaxy, please refer to https://galaxyproject.org/
 Before running the tests, run the following commands:
 
 ```
-conda create --name galaxy_ml python=3.9
+conda create --name galaxy_ml python=3.11
 conda activate galaxy_ml
 pip install -e .
-pip install nose nose-htmloutput pytest
+pip install pytest pytest-html
 cd galaxy_ml
 ```
 
 To run all tests and generate an HTML report:
 ```
-nosetests ./tests --with-html --html-file=./report.html
+python -m pytest ./tests --html=./report.html
 ```
 
 To run tests in a specific file (e.g., test_keras_galaxy.py file) and generate an HTML report
 ```
-nosetests ./tests/test_keras_galaxy.py --with-html --html-file=./report.html
+python -m pytest ./tests/test_keras_galaxy.py --html=./report.html
 ```
 
 To run a specific test in a specific file (e.g., test_multi_dimensional_output test in test_keras_galaxy.py file) and generate an HTML report
 ```
-nosetests ./tests/test_keras_galaxy.py:test_multi_dimensional_output --with-html --html-file=./report.html
+python -m pytest ./tests/test_keras_galaxy.py::test_multi_dimensional_output --html=./report.html
 ```
 
 ### Examples for using Galaxy-ML custom models
@@ -212,3 +222,10 @@ Pipeline(memory=None,
 
 
 Gu Q, Kumar A, Bray S, Creason A, Khanteymoori A, Jalili V, et al. (2021) Galaxy-ML: An accessible, reproducible, and scalable machine learning toolkit for biomedicine. PLoS Comput Biol 17(6): e1009014. https://doi.org/10.1371/journal.pcbi.1009014
+
+
+#### new installs
+
+pip install pytest pytest-html
+
+pytest ./tests --html=report.html --self-contained-html

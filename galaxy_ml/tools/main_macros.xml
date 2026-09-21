@@ -1,6 +1,6 @@
 <macros>
 
-  <token name="@GALAXY_ML_VERSION@">0.10.0</token>
+  <token name="@GALAXY_ML_VERSION@">0.11.0</token>
 
   <token name="@SUFFIX@">0</token>
 
@@ -10,7 +10,7 @@
 
   <xml name="python_requirements">
     <requirements>
-      <requirement type="package" version="3.9">python</requirement>
+      <requirement type="package" version="3.13">python</requirement>
       <requirement type="package" version="@GALAXY_ML_VERSION@">Galaxy-ML</requirement>
       <container type="docker">quay.io/goeckslab/galaxy-ml:@GALAXY_ML_VERSION@</container>
     </requirements>

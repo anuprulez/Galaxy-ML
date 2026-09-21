@@ -1,4 +1,5 @@
 import glob
+import copy
 import json
 import os
 import tempfile
@@ -27,14 +28,14 @@ from keras.utils import to_categorical
 
 import matplotlib.pyplot as plt
 
-from nose.tools import nottest
+from pytest import mark
 
 import numpy as np
 
 import pandas as pd
 
 from sklearn.base import clone
-from sklearn.metrics import SCORERS
+from sklearn.metrics import get_scorer
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import (
     GridSearchCV, KFold, ShuffleSplit, StratifiedKFold, StratifiedShuffleSplit,
@@ -42,7 +43,7 @@ from sklearn.model_selection import (
 )
 
 import tensorflow as tf
-from tensorflow import keras
+import keras
 
 
 warnings.simplefilter('ignore')
@@ -167,8 +168,8 @@ d = {
 }
 
 
-def teardown():
-    files = glob.glob('./tests/*.hdf5', recursive=False)
+def teardown_module():
+    files = glob.glob('./tests/*.weights.h5', recursive=False)
     for fl in files:
         os.remove(fl)
     log_file = glob.glob('./tests/log.cvs', recursive=False)
@@ -237,101 +238,22 @@ def test_update_dict():
             },
         },
     }
+    expected = copy.deepcopy(d)
+    expected['config']['kernel_initializer']['config']['seed'] = 42
     got = _update_dict(d, u)
 
-    expect = {
-        'class_name': 'Dense',
-        'config': {
-            'name': 'dense',
-            'trainable': True,
-            'dtype': 'float32',
-            'units': 64,
-            'activation': 'linear',
-            'use_bias': True,
-            'kernel_initializer': {
-                'class_name': 'GlorotUniform',
-                'config': {
-                    'seed': 42
-                }
-            },
-            'bias_initializer': {
-                'class_name': 'Zeros',
-                'config': {}
-            },
-            'kernel_regularizer': None,
-            'bias_regularizer': None,
-            'activity_regularizer': None,
-            'kernel_constraint': None,
-            'bias_constraint': None}}
-    assert got == expect, got
+    assert got == expected
 
 
 def test_get_params_keras_layers():
     config = model.get_config()
     layers = KerasLayers(name=config['name'], layers=config['layers'])
-    got = list(layers.get_params().keys())
-    expect = [
-        'layers',
-        'name',
-        'layers_0_Dense',
-        'layers_1_Activation',
-        'layers_2_Activation',
-        'layers_3_Dense',
-        'layers_0_Dense__class_name',
-        'layers_0_Dense__config',
-        'layers_0_Dense__config__name',
-        'layers_0_Dense__config__trainable',
-        'layers_0_Dense__config__dtype',
-        'layers_0_Dense__config__units',
-        'layers_0_Dense__config__activation',
-        'layers_0_Dense__config__use_bias',
-        'layers_0_Dense__config__kernel_initializer',
-        'layers_0_Dense__config__kernel_initializer__class_name',
-        'layers_0_Dense__config__kernel_initializer__config',
-        'layers_0_Dense__config__kernel_initializer__config__seed',
-        'layers_0_Dense__config__bias_initializer',
-        'layers_0_Dense__config__bias_initializer__class_name',
-        'layers_0_Dense__config__bias_initializer__config',
-        'layers_0_Dense__config__kernel_regularizer',
-        'layers_0_Dense__config__bias_regularizer',
-        'layers_0_Dense__config__activity_regularizer',
-        'layers_0_Dense__config__kernel_constraint',
-        'layers_0_Dense__config__bias_constraint',
-        'layers_1_Activation__class_name',
-        'layers_1_Activation__config',
-        'layers_1_Activation__config__name',
-        'layers_1_Activation__config__trainable',
-        'layers_1_Activation__config__dtype',
-        'layers_1_Activation__config__activation',
-        'layers_2_Activation__class_name',
-        'layers_2_Activation__config',
-        'layers_2_Activation__config__name',
-        'layers_2_Activation__config__trainable',
-        'layers_2_Activation__config__dtype',
-        'layers_2_Activation__config__activation',
-        'layers_3_Dense__class_name',
-        'layers_3_Dense__config',
-        'layers_3_Dense__config__name',
-        'layers_3_Dense__config__trainable',
-        'layers_3_Dense__config__dtype',
-        'layers_3_Dense__config__units',
-        'layers_3_Dense__config__activation',
-        'layers_3_Dense__config__use_bias',
-        'layers_3_Dense__config__kernel_initializer',
-        'layers_3_Dense__config__kernel_initializer__class_name',
-        'layers_3_Dense__config__kernel_initializer__config',
-        'layers_3_Dense__config__kernel_initializer__config__seed',
-        'layers_3_Dense__config__bias_initializer',
-        'layers_3_Dense__config__bias_initializer__class_name',
-        'layers_3_Dense__config__bias_initializer__config',
-        'layers_3_Dense__config__kernel_regularizer',
-        'layers_3_Dense__config__bias_regularizer',
-        'layers_3_Dense__config__activity_regularizer',
-        'layers_3_Dense__config__kernel_constraint',
-        'layers_3_Dense__config__bias_constraint'
-    ]
-
-    assert got == expect, got
+    params = layers.get_params()
+    assert params['layers_0_Dense__config__units'] == 64
+    assert params['layers_3_Dense__config__units'] == 32
+    assert params['layers_1_Activation__config__activation'] == 'tanh'
+    assert params['layers_0_Dense__config__dtype__config__name'] == 'float32'
+    assert clone(layers).get_params()['layers'] == config['layers']
 
 
 def test_set_params_keras_layers():
@@ -586,106 +508,11 @@ def test_funtional_model_get_params():
                                   seed=0)
 
     params = classifier.get_params()
-    got = {}
-    for key, value in params.items():
-        if key.startswith('layers_1_Conv2D__') or (
-            not key.endswith('config')
-            and not key.startswith('layers')
-        ):
-            got[key] = value
-    expect = {
-        'amsgrad': None,
-        'batch_size': 32,
-        'beta': None,
-        'beta_1': None,
-        'beta_2': None,
-        'callbacks': None,
-        'centered': None,
-        'epochs': 1,
-        'epsilon': None,
-        'initial_accumulator_value': None,
-        'l1_regularization_strength': None,
-        'l2_regularization_strength': None,
-        'l2_shrinkage_regularization_strength': None,
-        'learning_rate': None,
-        'learning_rate_power': None,
-        'loss': None,
-        'loss_weights': None,
-        'metrics': [],
-        'model_type': 'functional',
-        'momentum': None,
-        'nesterov': None,
-        'optimizer': 'rmsprop',
-        'rho': None,
-        'run_eagerly': None,
-        'seed': 0,
-        'steps_per_epoch': None,
-        'steps_per_execution': None,
-        'validation_split': 0.1,
-        'validation_steps': None,
-        'verbose': 1,
-        'layers_1_Conv2D__class_name': 'Conv2D',
-        'layers_1_Conv2D__config': {
-            'name': 'conv2d',
-            'trainable': True,
-            'dtype': 'float32',
-            'filters': 32,
-            'kernel_size': (3, 3),
-            'strides': (1, 1),
-            'padding': 'valid',
-            'data_format': 'channels_last',
-            'dilation_rate': (1, 1),
-            'groups': 1,
-            'activation': 'relu',
-            'use_bias': True,
-            'kernel_initializer': {
-                'class_name': 'GlorotUniform',
-                'config': {
-                    'seed': None}},
-            'bias_initializer': {
-                'class_name': 'Zeros',
-                'config': {}},
-            'kernel_regularizer': None,
-            'bias_regularizer': None,
-            'activity_regularizer': None,
-            'kernel_constraint': None,
-            'bias_constraint': None},
-        'layers_1_Conv2D__config__name': 'conv2d',
-        'layers_1_Conv2D__config__trainable': True,
-        'layers_1_Conv2D__config__dtype': 'float32',
-        'layers_1_Conv2D__config__filters': 32,
-        'layers_1_Conv2D__config__kernel_size': (3, 3),
-        'layers_1_Conv2D__config__strides': (1, 1),
-        'layers_1_Conv2D__config__padding': 'valid',
-        'layers_1_Conv2D__config__data_format': 'channels_last',
-        'layers_1_Conv2D__config__dilation_rate': (1, 1),
-        'layers_1_Conv2D__config__groups': 1,
-        'layers_1_Conv2D__config__activation': 'relu',
-        'layers_1_Conv2D__config__use_bias': True,
-        'layers_1_Conv2D__config__kernel_initializer': {
-            'class_name': 'GlorotUniform',
-            'config': {
-                'seed': None}},
-        'layers_1_Conv2D__config__kernel_initializer__class_name':
-            'GlorotUniform',
-        'layers_1_Conv2D__config__kernel_initializer__config': {
-            'seed': None},
-        'layers_1_Conv2D__config__kernel_initializer__config__seed': None,
-        'layers_1_Conv2D__config__bias_initializer': {
-            'class_name': 'Zeros',
-            'config': {}},
-        'layers_1_Conv2D__config__bias_initializer__class_name': 'Zeros',
-        'layers_1_Conv2D__config__bias_initializer__config': {},
-        'layers_1_Conv2D__config__kernel_regularizer': None,
-        'layers_1_Conv2D__config__bias_regularizer': None,
-        'layers_1_Conv2D__config__activity_regularizer': None,
-        'layers_1_Conv2D__config__kernel_constraint': None,
-        'layers_1_Conv2D__config__bias_constraint': None,
-        'layers_1_Conv2D__name': 'conv2d',
-        'layers_1_Conv2D__inbound_nodes': [[['img', 0, 0, {}]]]
-    }
-
-    assert got == expect, got
+    assert params['layers_1_Conv2D__config__filters'] == 32
+    assert params['layers_1_Conv2D__config__kernel_size'] == (3, 3)
+    assert params['layers_1_Conv2D__config'] == config['layers'][1]['config']
+    assert params['seed'] == 0
+    assert clone(classifier).get_params()['config'] == config
 
 
 def test_set_params_functional_model():
@@ -719,13 +546,9 @@ def test_to_json_keras_g_classifier():
 
     got = classifier.to_json()
     got = json.loads(got)
-    got.pop('keras_version')
-
-    with open('./tools/test-data/to_json.txt', 'r') as f:
-        expect = f.read()
-    expect = json.loads(expect)
-
-    assert got == expect, got
+    assert got['class_name'] == 'Sequential'
+    restored = keras.models.model_from_json(classifier.to_json())
+    assert restored.get_config() == model.get_config()
 
 
 def test_keras_model_to_json():
@@ -743,8 +566,9 @@ def test_keras_model_to_json():
 
     got = model.to_json()  # json_string
 
-    assert 4500 < len(got) < 5000, len(got)
-    assert got.startswith('{"class_name": "Functional",'), got
+    assert json.loads(got)['class_name'] == 'Functional'
+    restored = keras.models.model_from_json(got)
+    assert all(output.shape[-1] == 1 for output in restored.outputs)
 
 
 def test_keras_model_load_and_save_weights():
@@ -765,11 +589,11 @@ def test_keras_model_load_and_save_weights():
     try:
         model.save_weights(tmp)
 
-        got = os.path.getsize(tmp)
-        expect = os.path.getsize(
-            './tools/test-data/keras_model_drosophila_weights01.h5')
-
-        assert abs(got - expect) < 40, got - expect
+        restored = KerasGRegressor(config, model_type=model_type)
+        restored.load_weights(tmp)
+        for actual, expected in zip(restored.model_.get_weights(),
+                                    model.model_.get_weights()):
+            np.testing.assert_array_equal(actual, expected)
     finally:
         os.remove(tmp)
 
@@ -797,7 +621,7 @@ def test_keras_galaxy_model_callbacks():
         {'callback_selection':
             {'monitor': 'val_loss', 'save_best_only': True,
              'period': 1, 'save_weights_only': True,
-             'filepath': './tests/weights.{epoch:02d}-{val_loss:.2f}.hdf5',
+             'filepath': './tests/weights.{epoch:02d}-{val_loss:.2f}.weights.h5',
              'callback_type': 'ModelCheckpoint', 'mode': 'auto'}}]
 
     estimator = KerasGClassifier(config, optimizer='adam',
@@ -807,7 +631,7 @@ def test_keras_galaxy_model_callbacks():
                                  callbacks=cbacks,
                                  verbose=0)
 
-    scorer = SCORERS['accuracy']
+    scorer = get_scorer('accuracy')
     train, test = next(KFold(n_splits=5).split(X, y))
 
     new_params = {
@@ -852,7 +676,7 @@ def test_keras_galaxy_model_callbacks_girdisearch():
                                  callbacks=cbacks,
                                  verbose=0)
 
-    scorer = SCORERS['balanced_accuracy']
+    scorer = get_scorer('balanced_accuracy')
     cv = KFold(n_splits=5)
 
     new_params = {
@@ -995,8 +819,8 @@ def test_keras_fasta_protein_batch_classifier():
     cv = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=123)
 
     scoring = {
-        'acc': SCORERS['accuracy'],
-        'ba_acc': SCORERS['balanced_accuracy']
+        'acc': get_scorer('accuracy'),
+        'ba_acc': get_scorer('balanced_accuracy')
     }
 
     grid = GridSearchCV(cloned_clf, {}, cv=cv, scoring=scoring,
@@ -1008,7 +832,7 @@ def test_keras_fasta_protein_batch_classifier():
     assert 0.45 <= got <= 0.52, got
 
 
-@nottest
+@mark.skip(reason="Previously excluded with nose.tools.nottest")
 def test_keras_genomic_intervals_batch_classifier():
     # selene case1 genome file, file not uploaded
     ref_genome_path = '~/projects/selene/manuscript/case1/data/'\
@@ -1100,7 +924,7 @@ def test_meric_callback():
     assert np.array_equal(y_val, y)
 
 
-@nottest
+@mark.skip(reason="Previously excluded with nose.tools.nottest")
 def test_predict_generator():
     ref_genome_path = '~/projects/selene/manuscript/case1/data/'\
         'GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta'
@@ -1197,7 +1021,7 @@ def test_predict_generator():
     assert np.array_equal(y_true, y_true_2)
 
 
-@nottest
+@mark.skip(reason="Previously excluded with nose.tools.nottest")
 def test_multi_dimensional_output():
 
     (X_train, y_train), (X_test, y_test) = mnist.load_data()

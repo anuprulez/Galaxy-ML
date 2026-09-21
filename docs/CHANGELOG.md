@@ -1,3 +1,18 @@
+### Version 0.11.0 (unreleased)
+
+- Target Python 3.11 across package metadata, CI, Docker and Galaxy tools.
+- Update the compatible dependency stack to TensorFlow/Keras 2.12,
+  scikit-learn 1.2, NumPy 1.23 and pandas 1.5.
+- Use isolated setuptools builds and pytest; remove setup-time pip invocations.
+- Build the Docker image from the local source checkout.
+- Pin skrebate 0.62 explicitly to preserve TuRF (upstream yanked this release
+  for version naming only).
+- XGBoost 1.7.6 imports, trains and round-trips through HDF5 on Python 3.11,
+  but its upstream Linux wheel declares CPython 3.10 in its internal WHEEL
+  metadata; `pip check`/`uv pip check` report that platform mismatch.
+- Galaxy tool installation requires publishing the matching 0.11.0 Conda
+  package and container image before release.
+
 ### Version 0.10.0
 
 #### Changes

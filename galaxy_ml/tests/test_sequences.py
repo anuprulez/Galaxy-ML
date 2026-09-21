@@ -8,7 +8,7 @@ from galaxy_ml.preprocessors import (
     GenomicVariantBatchGenerator, ProteinOneHotEncoder,
 )
 
-from nose.tools import nottest
+from pytest import mark
 
 import numpy as np
 
@@ -232,7 +232,7 @@ def test_protein_one_hot_encoder():
     assert np.array_equal(trans, expect), trans
 
 
-@nottest
+@mark.skip(reason="Previously excluded with nose.tools.nottest")
 def test_genomic_interval_batch_generator():
     # selene case1 genome file, file not uploaded
     ref_genome_path = '/projects/selene/manuscript/case1/data/'\
@@ -296,7 +296,7 @@ def test_genomic_interval_batch_generator():
     X = np.arange(2, 10)[:, np.newaxis]
     indices, weights = generator1.get_indices_and_probabilities(X)
 
-    assert np.array_equal(indices, np.array([2, 3, 4, 5, 6, 7, 8, 9])),\
+    assert np.array_equal(indices, np.array([2, 3, 4, 5, 6, 7, 8, 9])), \
         indices
     assert [round(w, 3) for w in weights] == \
         [0.193, 0.023, 0.132, 0.049, 0.065, 0.195, 0.284, 0.058], weights
@@ -323,13 +323,13 @@ def test_genomic_interval_batch_generator():
     # test sample()
     retrieved_seq_encodings, targets = generator1.sample(X, sample_size=10)
 
-    assert retrieved_seq_encodings.shape == (10, 1000, 4),\
+    assert retrieved_seq_encodings.shape == (10, 1000, 4), \
         retrieved_seq_encodings.shape
-    assert retrieved_seq_encodings[0][2].tolist() == [0, 1, 0, 0],\
+    assert retrieved_seq_encodings[0][2].tolist() == [0, 1, 0, 0], \
         retrieved_seq_encodings[0][2]
-    assert retrieved_seq_encodings[1][4].tolist() == [0, 0, 0, 1],\
+    assert retrieved_seq_encodings[1][4].tolist() == [0, 0, 0, 1], \
         retrieved_seq_encodings[1][4]
-    assert retrieved_seq_encodings[2][5].tolist() == [1, 0, 0, 0],\
+    assert retrieved_seq_encodings[2][5].tolist() == [1, 0, 0, 0], \
         retrieved_seq_encodings[2][5]
     assert targets.tolist() == \
         [[0], [1], [0], [0], [0], [0], [0], [0], [0], [1]], targets
@@ -346,7 +346,7 @@ def test_genomic_interval_batch_generator():
     generator2.close()
 
 
-@nottest
+@mark.skip(reason="Previously excluded with nose.tools.nottest")
 def test_genomic_variant_batch_generator():
     # selene case2 and 3 genome file, file not uploaded
     ref_genome_path = "/projects/selene/manuscript/case3/"\

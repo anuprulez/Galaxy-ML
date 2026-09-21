@@ -443,7 +443,7 @@ def main(inputs, infile_estimator, infile1, infile2,
             predictions = estimator.predict(X_test)
 
         y_true = y_test
-        sk_scores = _score(estimator, X_test, y_test, scorer)
+        sk_scores = _score(estimator, X_test, y_test, scorer, score_params={})
         scores.update(sk_scores)
 
     # handle output

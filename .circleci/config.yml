@@ -2,14 +2,14 @@ version: 2
 jobs:
   build:
     docker:
-      - image: cimg/python:3.9
+      - image: cimg/python:3.13
     steps:
       - checkout
       - run:
           name: Build Dependencies
           command: |
             pip install -e .
-            pip install flake8 nose pytest | cat; test ${PIPESTATUS[0]} -eq 0
+            pip install flake8 pytest | cat; test ${PIPESTATUS[0]} -eq 0
             mkdir test-reports | cat
       - run:
           name: Flake8
@@ -19,12 +19,12 @@ jobs:
           name: Run API Tests
           command: |
             cd ./galaxy_ml
-            nosetests ./tests -sv
+            python -m pytest ./tests -sv
       - store_test_results:
           path: test-reports
   tool_lint:
     docker:
-      - image: cimg/python:3.9
+      - image: cimg/python:3.13
     steps:
       - checkout
       - run:
@@ -35,7 +35,7 @@ jobs:
             planemo lint
   tool_test:
     docker:
-      - image: cimg/python:3.9
+      - image: cimg/python:3.13
     parallelism: 4
     steps:
       - checkout

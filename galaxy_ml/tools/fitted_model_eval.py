@@ -126,7 +126,7 @@ def main(inputs, infile_estimator, outfile_eval,
         scores = estimator.evaluate(X_test, y_test=y_test,
                                     scorer=scorer)
     else:
-        scores = _score(estimator, X_test, y_test, scorer)
+        scores = _score(estimator, X_test, y_test, scorer, score_params={})
 
     # handle output
     for name, score in scores.items():
