@@ -13,22 +13,15 @@ from galaxy_ml.keras_galaxy_models import (
 from galaxy_ml.model_validations import _fit_and_score
 from galaxy_ml.preprocessors import FastaDNABatchGenerator
 from galaxy_ml.preprocessors import FastaProteinBatchGenerator
-from galaxy_ml.preprocessors import GenomicIntervalBatchGenerator
 
 import h5py
 
 from keras import layers
-from keras.datasets import mnist
 from keras.layers import (
-    Activation, Conv1D, Conv2D, Dense, Dropout, Flatten,
-    MaxPool1D, MaxPooling2D, Reshape,
+    Activation, Conv1D, Conv2D, Dense, Flatten, MaxPooling2D, Reshape,
 )
 from keras.models import Model, Sequential
 from keras.utils import to_categorical
-
-import matplotlib.pyplot as plt
-
-from pytest import mark
 
 import numpy as np
 
@@ -36,7 +29,6 @@ import pandas as pd
 
 from sklearn.base import clone
 from sklearn.metrics import get_scorer
-from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import (
     GridSearchCV, KFold, ShuffleSplit, StratifiedKFold, StratifiedShuffleSplit,
     _search,
@@ -832,81 +824,32 @@ def test_keras_fasta_protein_batch_classifier():
     assert 0.45 <= got <= 0.52, got
 
 
-@mark.skip(reason="Previously excluded with nose.tools.nottest")
-def test_keras_genomic_intervals_batch_classifier():
-    # selene case1 genome file, file not uploaded
-    ref_genome_path = '~/projects/selene/manuscript/case1/data/'\
-        'GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta'
-    intervals_path = './tools/test-data/hg38_TF_intervals_2000.txt'
-    # selene case1 target bed file, file not uploaded
-    target_path = '~/projects/selene/manuscript/case1/data/'\
-        'GATA1_proery_bm.bed.gz'
-    seed = 42
-    random_state = 0
-
-    generator = GenomicIntervalBatchGenerator(
-        ref_genome_path=ref_genome_path,
-        intervals_path=intervals_path,
-        target_path=target_path,
-        seed=seed,
-        features=['Proery_BM|GATA1'],
-        random_state=random_state
-    )
-
-    # DeepSea model
-    model = Sequential()
-    model.add(Conv1D(filters=320, kernel_size=8, input_shape=(1000, 4)))
-    model.add(Activation('relu'))
-    model.add(MaxPool1D(pool_size=4, strides=4))
-    model.add(Dropout(0.2))
-    model.add(Conv1D(filters=480, kernel_size=8))
-    model.add(Activation('relu'))
-    model.add(MaxPool1D(pool_size=4, strides=4))
-    model.add(Dropout(0.2))
-    model.add(Conv1D(filters=960, kernel_size=8))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.5))
-    model.add(Reshape((50880,)))
-    model.add(Dense(1))
-    model.add(Activation('relu'))
-    model.add(Dense(1))
-    model.add(Activation('sigmoid'))
-
-    config = model.get_config()
-
+def test_keras_genomic_intervals_batch_classifier(genomic_generator, monkeypatch):
+    model = Sequential([
+        keras.Input(shape=(32, 4)), Conv1D(2, 3, activation='relu'),
+        Flatten(), Dense(1, activation='sigmoid')])
     classifier = KerasGBatchClassifier(
-        config, clone(generator), optimizer='adam',
-        momentum=0.9, nesterov=True,
-        batch_size=64, n_jobs=1, epochs=10,
-        steps_per_epoch=20,
-        prediction_steps=100,
-        validation_split=0.1,
-        class_positive_factor=3,
-        metrics=['acc'])
-
-    for k, v in classifier.get_params().items():
-        if k.endswith('_seed') and v is None:
-            classifier.set_params(**{k: 999})
-
-    classifier1 = clone(classifier)
-
-    intervals = pd.read_csv(intervals_path, sep='\t', header=None)
-    n_samples = intervals.shape[0]
-    X = np.arange(n_samples)[:, np.newaxis]
-
-    cv = ShuffleSplit(1, test_size=0.2, random_state=123)
-    scoring = 'balanced_accuracy'
-    param_grid = {}
-
-    setattr(_search, '_fit_and_score', _fit_and_score)
-    GridSearchCV = getattr(_search, 'GridSearchCV')
-
-    grid = GridSearchCV(classifier1, param_grid, scoring=scoring,
-                        cv=cv, refit=False, error_score='raise',
-                        n_jobs=1)
-    y = None
-    grid.fit(X, y, verbose=1)
-    print(grid.cv_results_)
+        model.get_config(), clone(genomic_generator), optimizer='adam',
+        batch_size=4, n_jobs=1, epochs=1, steps_per_epoch=1,
+        validation_split=0.25, class_positive_factor=3,
+        metrics=['accuracy'], seed=42, verbose=0)
+    X = np.arange(12)[:, None]
+    # Galaxy's scoring adapter obtains labels from the genomic generator.
+    monkeypatch.setattr(_search, '_fit_and_score', _fit_and_score)
+    grid = GridSearchCV(clone(classifier), {}, scoring='balanced_accuracy',
+                        cv=ShuffleSplit(1, test_size=0.5, random_state=123),
+                        refit=True, error_score='raise', n_jobs=1)
+    try:
+        grid.fit(X)
+        score = grid.cv_results_['mean_test_score'][0]
+        assert np.isfinite(score) and 0 <= score <= 1
+        assert grid.best_estimator_.classes_.tolist() == [0, 1]
+        probabilities = grid.best_estimator_.predict_proba(X)
+        assert probabilities.shape == (12, 2)
+        np.testing.assert_allclose(probabilities.sum(axis=1), 1)
+    finally:
+        if hasattr(grid, 'best_estimator_'):
+            grid.best_estimator_.data_generator_.close()
 
 
 def test_meric_callback():
@@ -924,174 +867,65 @@ def test_meric_callback():
     assert np.array_equal(y_val, y)
 
 
-@mark.skip(reason="Previously excluded with nose.tools.nottest")
-def test_predict_generator():
-    ref_genome_path = '~/projects/selene/manuscript/case1/data/'\
-        'GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta'
-    intervals_path = '~/projects/selene/manuscript/case1/data/'\
-        'hg38_TF_intervals.txt'
-    # selene case1 target bed file, file not uploaded
-    target_path = '~/projects/selene/manuscript/case1/data/'\
-        'GATA1_proery_bm.bed.gz'
-    seed = 42
-    random_state = 0
+def test_predict_generator(genomic_generator, tmp_path):
+    model = Sequential([
+        keras.Input(shape=(32, 4)), Flatten(), Dense(1, activation='sigmoid')])
+    clf = KerasGBatchClassifier(
+        model.get_config(), clone(genomic_generator), optimizer='sgd',
+        batch_size=4, n_jobs=1, epochs=1, steps_per_epoch=3,
+        seed=42, verbose=0)
+    X = np.arange(12)[:, None]
+    try:
+        clf.fit(X)
+        # Two batches include a partial final batch and preserve label order.
+        subset = X[:6]
+        preds, labels = _predict_generator(
+            clf.model_, genomic_generator.flow(subset, batch_size=4), steps=2)
+        assert preds.shape == labels.shape == (6, 1)
+        assert np.isfinite(preds).all()
+        assert ((preds >= 0) & (preds <= 1)).all()
+        np.testing.assert_array_equal(labels[:, 0], [1, 0, 1, 0, 1, 0])
+        direct_X, direct_y = next(genomic_generator.flow(subset, batch_size=6))
+        np.testing.assert_allclose(
+            preds, clf.model_.predict_on_batch(direct_X), atol=1e-7)
+        np.testing.assert_array_equal(labels, direct_y)
 
-    generator = GenomicIntervalBatchGenerator(
-        ref_genome_path=ref_genome_path,
-        intervals_path=intervals_path,
-        target_path=target_path,
-        seed=seed,
-        features=['Proery_BM|GATA1'],
-        random_state=random_state
-    )
-    generator.set_processing_attrs()
-
-    # DeepSea model
-    model = Sequential()
-    model.add(Conv1D(filters=320, kernel_size=8, input_shape=(1000, 4)))
-    model.add(Activation('relu'))
-    model.add(MaxPool1D(pool_size=4, strides=4))
-    model.add(Dropout(0.2))
-    model.add(Conv1D(filters=480, kernel_size=8))
-    model.add(Activation('relu'))
-    model.add(MaxPool1D(pool_size=4, strides=4))
-    model.add(Dropout(0.2))
-    model.add(Conv1D(filters=960, kernel_size=8))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.5))
-    model.add(Reshape((50880,)))
-    model.add(Dense(1))
-    model.add(Activation('sigmoid'))
-
-    config = model.get_config()
-
-    classifier = KerasGBatchClassifier(
-        config, clone(generator), optimizer='sgd',
-        momentum=0.9, nesterov=True,
-        batch_size=64, n_jobs=4, epochs=3,
-        steps_per_epoch=10,
-        prediction_steps=10,
-        class_positive_factor=3,
-        validation_steps=10,
-        validation_split=0.1,
-        metrics=['acc', 'sparse_categorical_accuracy'])
-
-    clf = clone(classifier)
-
-    intervals = pd.read_csv(intervals_path, sep='\t', header=None)
-    n_samples = intervals.shape[0]
-    X = np.arange(n_samples)[:, np.newaxis]
-
-    cv = ShuffleSplit(1, test_size=0.2, random_state=123)
-
-    train_index, test_index = next(cv.split(X))
-    X_train, X_test = X[train_index], X[test_index]
-
-    clf.fit(X_train)
-
-    pred_data_generator = clone(generator).flow(X_test, batch_size=64)
-
-    preds, y_true = _predict_generator(clf.model_, pred_data_generator,
-                                       steps=2)
-
-    assert preds.shape == (128, 1), y_true.shape
-    assert 0.30 < preds[0][0] < 0.40, preds[0][0]
-    assert y_true.shape == (128, 1), y_true.shape
-    assert np.sum(y_true) == 9, np.sum(y_true)
-
-    # save_model and load_model
-    _, tmp = tempfile.mkstemp()
-
-    clf.save_model(tmp)
-
-    with h5py.File(tmp, 'r') as h:
-        assert len(h.keys()) == 4
-        assert h['class_name'][()] == 'KerasGBatchClassifier'
-        params = json.loads(h['params'][()].decode('utf8'))
-        assert params.get('data_batch_generator', None) is None
-
-    r_model = load_model(tmp)
-
-    os.remove(tmp)
-
-    pred_data_generator = clone(generator).flow(X_test, batch_size=64)
-    preds_2, y_true_2 = _predict_generator(
-        r_model.model_, pred_data_generator, steps=2)
-    assert np.array_equal(preds, preds_2)
-    assert np.array_equal(y_true, y_true_2)
+        path = tmp_path / 'batch_classifier.h5'
+        clf.save_model(path)
+        with h5py.File(path, 'r') as h:
+            assert h['class_name'][()].decode('utf8') == 'KerasGBatchClassifier'
+            params = json.loads(h['params'][()].decode('utf8'))
+            assert params.get('data_batch_generator') is None
+        restored = load_model(path)
+        preds_2, labels_2 = _predict_generator(
+            restored.model_, genomic_generator.flow(subset, batch_size=4))
+        np.testing.assert_allclose(preds_2, preds, atol=1e-7)
+        np.testing.assert_array_equal(labels_2, labels)
+    finally:
+        if hasattr(clf, 'data_generator_'):
+            clf.data_generator_.close()
 
 
-@mark.skip(reason="Previously excluded with nose.tools.nottest")
 def test_multi_dimensional_output():
-
-    (X_train, y_train), (X_test, y_test) = mnist.load_data()
-
-    # training data has 60,000 samples, each 784 dimensional
-    # testing data has 10,000 samples, each 784 dimensional
-    X_train = X_train.reshape(60000, 784)
-    y_train = y_train.reshape(60000,)
-    X_test = X_test.reshape(10000, 784)
-    y_test = y_test.reshape(10000,)
-
-    # One hot encode the output. Output becomes 10 dimensional
-    # One of the dimensions is 1, and all other are 0
-    y_train = to_categorical(y_train)
-    y_test = to_categorical(y_test)
-
-    assert X_train.shape[0] == 60000
-    assert X_train.shape[1] == 784
-    assert X_test.shape[0] == 10000
-    assert X_test.shape[1] == 784
-    assert y_train.shape[0] == 60000
-    assert y_train.shape[1] == 10
-    assert y_test.shape[0] == 10000
-    assert y_test.shape[1] == 10
-
-    # Create model
-    model = Sequential()
-
-    # Add model layers
-    # Reshape each sample (which is 784 dimensional) to
-    # 28 by 28 by 1 (representing a 28 by 28 grayscale image)
-    model.add(Reshape((28, 28, 1), input_shape=(784,)))
-    model.add(Conv2D(64, kernel_size=3, activation='relu', padding='same'))
-    model.add(MaxPooling2D((2, 2)))
-    model.add(Conv2D(32, kernel_size=3, activation='relu', padding='same'))
-    model.add(MaxPooling2D((2, 2)))
-    model.add(Flatten())
-    model.add(Dense(10, activation='softmax'))
-
-    config = model.get_config()
-    classifier = KerasGClassifier(config, optimizer='adam',
-                                  loss='categorical_crossentropy',
-                                  metrics=['accuracy'])
-    classifier.fit(X_train, y_train)
-    y_predict = classifier.predict(X_test)
-
-    assert len(y_predict.shape) == 1
-    assert y_predict.shape[0] == X_test.shape[0]
-    assert y_predict.max() == 9
-    assert y_predict.min() == 0
-
-    y_test_arg_max = np.argmax(y_test, axis=1)
-    assert len(y_test_arg_max.shape) == 1
-    assert y_test_arg_max.shape[0] == X_test.shape[0]
-
-    axis_labels = list(set(y_test_arg_max))
-    c_matrix = confusion_matrix(y_test_arg_max, y_predict)
-    fig, ax = plt.subplots(figsize=(7, 7))
-    im = plt.imshow(c_matrix, cmap='Greens')
-    for i in range(len(c_matrix)):
-        for j in range(len(c_matrix)):
-            ax.text(j, i, c_matrix[i, j], ha="center", va="center", color="k")
-    ax.set_ylabel('True class labels')
-    ax.set_xlabel('Predicted class labels')
-    ax.set_title('Confusion Matrix')
-    ax.set_xticks(axis_labels)
-    ax.set_yticks(axis_labels)
-    fig.colorbar(im, ax=ax)
-    fig.tight_layout()
-    plt.savefig("ConfusionMatrix.png", dpi=125)
+    # Exercise one-hot multiclass targets without downloading MNIST.
+    X = np.random.RandomState(42).normal(size=(24, 16)).astype('float32')
+    y = to_categorical(np.tile(np.arange(3), 8), num_classes=3)
+    model = Sequential([
+        keras.Input(shape=(16,)), Reshape((4, 4, 1)),
+        Conv2D(2, kernel_size=3, activation='relu', padding='same'),
+        MaxPooling2D((2, 2)), Flatten(), Dense(3, activation='softmax')])
+    classifier = KerasGClassifier(
+        model.get_config(), optimizer='adam', loss='categorical_crossentropy',
+        metrics=['accuracy'], epochs=1, batch_size=6, seed=42, verbose=0,
+        validation_split=0.25)
+    classifier.fit(X[:18], y[:18])
+    predicted = classifier.predict(X[18:])
+    probabilities = classifier.predict_proba(X[18:])
+    assert predicted.shape == (6,)
+    assert probabilities.shape == (6, 3)
+    np.testing.assert_array_equal(classifier.classes_, [0, 1, 2])
+    np.testing.assert_array_equal(predicted, probabilities.argmax(axis=1))
+    np.testing.assert_allclose(probabilities.sum(axis=1), 1, atol=1e-6)
 
 
 def test_model_save_and_load():

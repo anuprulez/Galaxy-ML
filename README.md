@@ -70,9 +70,8 @@ A typic machine learning pipeline is composed of a main estimator/model and opti
 
 ### Installation
 
-This source version targets Python 3.11, TensorFlow/Keras 2.12 and
-scikit-learn 1.2. Dependency upper bounds preserve the legacy estimator and
-model serialization APIs; newer major versions need a separate migration.
+This source version targets Python 3.12. Dependency versions are pinned in
+`requirements.txt`.
 Previously saved models may need to be retrained with the updated stack.
 
 The Galaxy tool definitions target the unreleased 0.11.0 package and container;
@@ -108,7 +107,7 @@ To install Galaxy-ML tools in Galaxy, please refer to https://galaxyproject.org/
 Before running the tests, run the following commands:
 
 ```
-conda create --name galaxy_ml python=3.11
+conda create --name galaxy_ml python=3.12
 conda activate galaxy_ml
 pip install -e .
 pip install pytest pytest-html

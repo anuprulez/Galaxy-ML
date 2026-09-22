@@ -514,7 +514,7 @@ class BaseKerasModel(six.with_metaclass(ABCMeta, BaseEstimator)):
         if self.optimizer == 'sgd':
             options = dict(
                 learning_rate=self.learning_rate or 0.01,
-                momentum=self.momentum or 0,
+                momentum=self.momentum or 0.0,
                 nesterov=self.nesterov or False
             )
 

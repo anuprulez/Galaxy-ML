@@ -13,7 +13,7 @@ from galaxy_ml.keras_galaxy_models import KerasGClassifier
 from imblearn.over_sampling import SMOTEN
 from imblearn.pipeline import make_pipeline
 
-from pytest import mark, raises
+from pytest import raises
 
 import numpy as np
 
@@ -153,72 +153,30 @@ def test_gbc_dump_and_load():
     )
 
 
-# CircleCI timeout with xgboost for no reason.
-@mark.skip(reason="Previously excluded with nose.tools.nottest")
-def test_xgb_dump_and_load():
-    xgbc = XGBClassifier(n_estimators=101, random_state=42, n_jobs=1)
-
-    model_persist.dump_model_to_h5(xgbc, tmp_xgbc_h5)
-    model_persist.load_model_from_h5(tmp_xgbc_h5)
+def test_xgb_dump_and_load(tmp_path):
+    xgbc = XGBClassifier(n_estimators=5, max_depth=2, random_state=42, n_jobs=1)
+    h5_path = str(tmp_path / 'xgb.h5')
+    model_persist.dump_model_to_h5(xgbc, h5_path)
+    restored = model_persist.load_model_from_h5(h5_path)
+    restored_params = restored.get_params()
+    original_params = xgbc.get_params()
+    assert np.isnan(restored_params.pop('missing'))
+    assert np.isnan(original_params.pop('missing'))
+    assert restored_params == original_params
 
     xgbc.fit(X_train, y_train)
-
-    got = model_persist.dumpc(xgbc)
-    r_model = model_persist.loadc(got)
-
-    assert np.array_equal(
-        xgbc.predict(X_test),
-        r_model.predict(X_test)
-    )
-
-    print("\nDumping XGBC to dict...")
-    start_time = time.time()
     model_dict = model_persist.dumpc(xgbc)
-    end_time = time.time()
-    print("(%s s)" % str(end_time - start_time))
-
-    print("\nDumping dict data to JSON file...")
-    start_time = time.time()
-    with open(xgbc_json, 'w') as f:
-        json.dump(model_dict, f, sort_keys=True)
-    end_time = time.time()
-    print("(%s s)" % str(end_time - start_time))
-    print("File size: %s" % str(os.path.getsize(xgbc_json)))
-
-    print("\nLoading data from JSON file...")
-    start_time = time.time()
-    with open(xgbc_json, 'r') as f:
-        json.load(f)
-    end_time = time.time()
-    print("(%s s)" % str(end_time - start_time))
-
-    print("\nRe-build the model object...")
-    start_time = time.time()
-    re_model = model_persist.loadc(model_dict)
-    end_time = time.time()
-    print("(%s s)" % str(end_time - start_time))
-    print("%r" % re_model)
-
-    print("\nDumping object to HDF5...")
-    start_time = time.time()
-    model_persist.dump_model_to_h5(xgbc, tmp_xgbc_h5)
-    end_time = time.time()
-    print("(%s s)" % str(end_time - start_time))
-    print("File size: %s" % str(os.path.getsize(tmp_xgbc_h5)))
-
-    print("\nLoading hdf5 model...")
-    start_time = time.time()
-    model = model_persist.load_model_from_h5(tmp_xgbc_h5)
-    end_time = time.time()
-    print("(%s s)" % str(end_time - start_time))
-
-    assert np.array_equal(
-        xgbc.predict(X_test),
-        model.predict(X_test)
-    )
+    json_path = tmp_path / 'xgb.json'
+    json_path.write_text(json.dumps(model_dict))
+    from_json = model_persist.loadc(json.loads(json_path.read_text()))
+    model_persist.dump_model_to_h5(xgbc, h5_path)
+    from_h5 = model_persist.load_model_from_h5(h5_path)
+    for restored in (model_persist.loadc(model_dict), from_json, from_h5):
+        np.testing.assert_array_equal(restored.predict(X_test), xgbc.predict(X_test))
+        np.testing.assert_allclose(
+            restored.predict_proba(X_test), xgbc.predict_proba(X_test))
 
 
-# KerasGClassifier
 def test_keras_dump_and_load():
 
     train_model = Sequential()
