@@ -75,7 +75,8 @@
           <conditional name="optimizer_selection">
             <param name="optimizer_type" value="RMSprop" />
             <section name="optimizer_options">
-              <param name="learning_rate" value="0.0001" />
+              <param name="lr" value="0.0001" />
+              <param name="decay" value="0.000001" />
             </section>
           </conditional>
           <param name="metrics" value="acc,categorical_accuracy" />

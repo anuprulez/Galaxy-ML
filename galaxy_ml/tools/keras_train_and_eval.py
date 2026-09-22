@@ -24,6 +24,7 @@ from scipy.io import mmread
 
 from sklearn.metrics._scorer import _check_multimetric_scoring
 from sklearn.model_selection._validation import _score
+from sklearn.pipeline import Pipeline
 from sklearn.utils import _safe_indexing, indexable
 
 
@@ -442,7 +443,7 @@ def main(inputs, infile_estimator, infile1, infile2,
             predictions = estimator.predict(X_test)
 
         y_true = y_test
-        sk_scores = _score(estimator, X_test, y_test, scorer, score_params={})
+        sk_scores = _score(estimator, X_test, y_test, scorer)
         scores.update(sk_scores)
 
     # handle output

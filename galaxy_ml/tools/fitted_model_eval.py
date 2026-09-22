@@ -11,6 +11,7 @@ from scipy.io import mmread
 
 from sklearn.metrics._scorer import _check_multimetric_scoring
 from sklearn.model_selection._validation import _score
+from sklearn.pipeline import Pipeline
 
 
 def _get_X_y(params, infile1, infile2):
@@ -125,7 +126,7 @@ def main(inputs, infile_estimator, outfile_eval,
         scores = estimator.evaluate(X_test, y_test=y_test,
                                     scorer=scorer)
     else:
-        scores = _score(estimator, X_test, y_test, scorer, score_params={})
+        scores = _score(estimator, X_test, y_test, scorer)
 
     # handle output
     for name, score in scores.items():

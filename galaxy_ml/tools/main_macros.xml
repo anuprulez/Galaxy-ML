@@ -1,6 +1,6 @@
 <macros>
 
-  <token name="@GALAXY_ML_VERSION@">0.11.0</token>
+  <token name="@GALAXY_ML_VERSION@">0.10.0</token>
 
   <token name="@SUFFIX@">0</token>
 
@@ -10,7 +10,7 @@
 
   <xml name="python_requirements">
     <requirements>
-      <requirement type="package" version="3.12">python</requirement>
+      <requirement type="package" version="3.9">python</requirement>
       <requirement type="package" version="@GALAXY_ML_VERSION@">Galaxy-ML</requirement>
       <container type="docker">quay.io/goeckslab/galaxy-ml:@GALAXY_ML_VERSION@</container>
     </requirements>
@@ -1413,7 +1413,7 @@
             <options from_dataset="infile_estimator" meta_file_key="hyper_params" startswith="@">
               <column name="name" index="2" />
               <column name="value" index="1" />
-              <filter type="unique_value" column="1" />
+              <filter type="unique_value" name="unique_param" column="1" />
             </options>
           </param>
           <param name="sp_value" type="text" value="" optional="true" label="New value" help="Supports int, float, boolean, single quoted string, and selected object constructor. Similar to the `Parameter settings for search` section in `searchcv` tool except that only single value is expected here.">

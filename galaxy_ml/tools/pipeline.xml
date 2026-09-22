@@ -301,17 +301,15 @@ dump_model_to_h5(out_obj, '$outfile', verbose=0)
     </outputs>
     <tests>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="pre_processor" />
-                    <conditional name="pre_processors">
-                        <param name="selected_pre_processor" value="QuantileTransformer" />
-                        <section name="options">
-                            <param name="random_state" value="10" />
-                        </section>
-                    </conditional>
+            <conditional name="component_selector">
+                <param name="component_type" value="pre_processor" />
+                <conditional name="pre_processors">
+                    <param name="selected_pre_processor" value="QuantileTransformer" />
+                    <section name="options">
+                        <param name="random_state" value="10" />
+                    </section>
                 </conditional>
-            </repeat>
+            </conditional>
             <section name="final_estimator">
                 <conditional name="estimator_selector">
                     <param name="selected_module" value="none" />
@@ -320,14 +318,12 @@ dump_model_to_h5(out_obj, '$outfile', verbose=0)
             <output name="outfile" file="pipeline17" compare="sim_size" delta="5" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="pre_processor" />
-                    <conditional name="pre_processors">
-                        <param name="selected_pre_processor" value="PowerTransformer" />
-                    </conditional>
+            <conditional name="component_selector">
+                <param name="component_type" value="pre_processor" />
+                <conditional name="pre_processors">
+                    <param name="selected_pre_processor" value="PowerTransformer" />
                 </conditional>
-            </repeat>
+            </conditional>
             <section name="final_estimator">
                 <conditional name="estimator_selector">
                     <param name="selected_module" value="sklearn.compose" />
@@ -355,203 +351,139 @@ dump_model_to_h5(out_obj, '$outfile', verbose=0)
                     </conditional>
                 </conditional>
             </repeat>
-            <section name="final_estimator">
-                <conditional name="estimator_selector">
-                    <param name="selected_module" value="svm" />
-                    <param name="selected_estimator" value="SVR" />
-                    <param name="text_params" value="kernel='linear'" />
-                </conditional>
-            </section>
+            <param name="selected_module" value="svm" />
+            <param name="selected_estimator" value="SVR" />
+            <param name="text_params" value="kernel='linear'" />
             <output name="outfile" file="pipeline01" compare="sim_size" delta="5" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="pre_processor" />
-                    <conditional name="pre_processors">
-                        <param name="selected_pre_processor" value="RobustScaler" />
-                    </conditional>
+            <conditional name="component_selector">
+                <param name="component_type" value="pre_processor" />
+                <conditional name="pre_processors">
+                    <param name="selected_pre_processor" value="RobustScaler" />
                 </conditional>
-            </repeat>
-            <section name="final_estimator">
-                <conditional name="estimator_selector">
-                    <param name="selected_module" value="linear_model" />
-                    <param name="selected_estimator" value="LassoCV" />
-                </conditional>
-            </section>
+            </conditional>
+            <param name="selected_module" value="linear_model" />
+            <param name="selected_estimator" value="LassoCV" />
             <output name="outfile" file="pipeline02" compare="sim_size" delta="5" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="pre_processor" />
-                    <conditional name="pre_processors">
-                        <param name="selected_pre_processor" value="RobustScaler" />
-                    </conditional>
+            <conditional name="component_selector">
+                <param name="component_type" value="pre_processor" />
+                <conditional name="pre_processors">
+                    <param name="selected_pre_processor" value="RobustScaler" />
                 </conditional>
-            </repeat>
-            <section name="final_estimator">
-                <conditional name="estimator_selector">
-                    <param name="selected_module" value="xgboost" />
-                    <param name="selected_estimator" value="XGBClassifier" />
-                </conditional>
-            </section>
+            </conditional>
+            <param name="selected_module" value="xgboost" />
+            <param name="selected_estimator" value="XGBClassifier" />
             <output name="outfile" file="pipeline03" compare="sim_size" delta="5" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="feature_selection" />
-                    <conditional name="fs_algorithm_selector">
-                        <param name="selected_algorithm" value="SelectFromModel" />
-                        <conditional name="model_inputter">
-                            <conditional name="estimator_selector">
-                                <param name="selected_module" value="ensemble" />
-                                <param name="selected_estimator" value="AdaBoostClassifier" />
-                            </conditional>
+            <conditional name="component_selector">
+                <param name="component_type" value="feature_selection" />
+                <conditional name="fs_algorithm_selector">
+                    <param name="selected_algorithm" value="SelectFromModel" />
+                    <conditional name="model_inputter">
+                        <conditional name="estimator_selector">
+                            <param name="selected_module" value="ensemble" />
+                            <param name="selected_estimator" value="AdaBoostClassifier" />
                         </conditional>
                     </conditional>
                 </conditional>
-            </repeat>
+            </conditional>
             <section name="final_estimator">
-                <conditional name="estimator_selector">
-                    <param name="selected_module" value="svm" />
-                    <param name="selected_estimator" value="LinearSVC" />
-                </conditional>
+                <param name="selected_module" value="svm" />
+                <param name="selected_estimator" value="LinearSVC" />
             </section>
             <output name="outfile" file="pipeline04" compare="sim_size" delta="5" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="None" />
-                </conditional>
-            </repeat>
-            <section name="final_estimator">
-                <conditional name="estimator_selector">
-                    <param name="selected_module" value="ensemble" />
-                    <param name="selected_estimator" value="RandomForestRegressor" />
-                    <param name="text_params" value="n_estimators=100, random_state=42" />
-                </conditional>
-            </section>
+            <conditional name="component_selector">
+                <param name="component_type" value="None" />
+            </conditional>
+            <param name="selected_module" value="ensemble" />
+            <param name="selected_estimator" value="RandomForestRegressor" />
+            <param name="text_params" value="n_estimators=100, random_state=42" />
             <output name="outfile" file="pipeline05" compare="sim_size" delta="5" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="decomposition" />
+            <conditional name="component_selector">
+                <param name="component_type" value="decomposition" />
                     <conditional name="matrix_decomposition_selector">
                         <param name="select_algorithm" value="PCA" />
                     </conditional>
-                </conditional>
-            </repeat>
-            <section name="final_estimator">
-                <conditional name="estimator_selector">
-                    <param name="selected_module" value="ensemble" />
-                    <param name="selected_estimator" value="AdaBoostRegressor" />
-                </conditional>
-            </section>
+            </conditional>
+            <param name="selected_module" value="ensemble" />
+            <param name="selected_estimator" value="AdaBoostRegressor" />
             <output name="outfile" file="pipeline06" compare="sim_size" delta="5" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="kernel_approximation" />
+            <conditional name="component_selector">
+                <param name="component_type" value="kernel_approximation" />
                     <conditional name="kernel_approximation_selector">
                         <param name="select_algorithm" value="RBFSampler" />
                         <param name="text_params" value="n_components=10, gamma=2.0" />
                     </conditional>
-                </conditional>
-            </repeat>
-            <section name="final_estimator">
-                <conditional name="estimator_selector">
-                    <param name="selected_module" value="ensemble" />
-                    <param name="selected_estimator" value="AdaBoostClassifier" />
-                </conditional>
-            </section>
+            </conditional>
+            <param name="selected_module" value="ensemble" />
+            <param name="selected_estimator" value="AdaBoostClassifier" />
             <output name="outfile" file="pipeline07" compare="sim_size" delta="5" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="FeatureAgglomeration" />
+            <conditional name="component_selector">
+                <param name="component_type" value="FeatureAgglomeration" />
                     <conditional name="FeatureAgglomeration_selector">
                         <param name="select_algorithm" value="FeatureAgglomeration" />
                         <param name="text_params" value="n_clusters=3, affinity='euclidean'" />
                     </conditional>
-                </conditional>
-            </repeat>
-            <section name="final_estimator">
-                <conditional name="estimator_selector">
-                    <param name="selected_module" value="ensemble" />
-                    <param name="selected_estimator" value="AdaBoostClassifier" />
-                </conditional>
-            </section>
+            </conditional>
+            <param name="selected_module" value="ensemble" />
+            <param name="selected_estimator" value="AdaBoostClassifier" />
             <output name="outfile" file="pipeline08" compare="sim_size" delta="20" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="skrebate" />
+            <conditional name="component_selector">
+                <param name="component_type" value="skrebate" />
                     <conditional name="skrebate_selector">
                         <param name="select_algorithm" value="ReliefF" />
                         <param name="text_params" value="n_features_to_select=3, n_neighbors=100" />
                     </conditional>
-                </conditional>
-            </repeat>
-            <section name="final_estimator">
-                <conditional name="estimator_selector">
-                    <param name="selected_module" value="ensemble" />
-                    <param name="selected_estimator" value="RandomForestRegressor" />
-                </conditional>
-            </section>
+            </conditional>
+            <param name="selected_module" value="ensemble" />
+            <param name="selected_estimator" value="RandomForestRegressor" />
             <output name="outfile" file="pipeline09" compare="sim_size" delta="5" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="imblearn" />
-                    <conditional name="imblearn_selector">
-                        <param name="select_algorithm" value="under_sampling.EditedNearestNeighbours" />
-                    </conditional>
+            <conditional name="component_selector">
+                <param name="component_type" value="imblearn" />
+                <conditional name="imblearn_selector">
+                    <param name="select_algorithm" value="under_sampling.EditedNearestNeighbours" />
                 </conditional>
-            </repeat>
-            <section name="final_estimator">
-                <conditional name="estimator_selector">
-                    <param name="selected_module" value="ensemble" />
-                    <param name="selected_estimator" value="RandomForestClassifier" />
-                </conditional>
-            </section>
+            </conditional>
+            <param name="selected_module" value="ensemble" />
+            <param name="selected_estimator" value="RandomForestClassifier" />
             <output name="outfile" file="pipeline11" compare="sim_size" delta="5" />
         </test>
         <test expect_failure="true">
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="None" />
-                </conditional>
-            </repeat>
-            <section name="final_estimator">
-                <conditional name="estimator_selector">
-                    <param name="selected_module" value="ensemble" />
-                    <param name="selected_estimator" value="RandomForestRegressor" />
-                    <param name="text_params" value="n_estimators=__import__('os').system('ls ~')" />
-                </conditional>
-            </section>
+            <conditional name="component_selector">
+                <param name="component_type" value="None" />
+            </conditional>
+            <param name="selected_module" value="ensemble" />
+            <param name="selected_estimator" value="RandomForestRegressor" />
+            <param name="text_params" value="n_estimators=__import__('os').system('ls ~')" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="feature_selection" />
-                    <conditional name="fs_algorithm_selector">
-                        <param name="selected_algorithm" value="RFE" />
-                        <conditional name="estimator_selector">
-                            <param name="selected_module" value="xgboost" />
-                            <param name="selected_estimator" value="XGBRegressor" />
-                            <param name="text_params" value="random_state=0" />
-                        </conditional>
+            <conditional name="component_selector">
+                <param name="component_type" value="feature_selection" />
+                <conditional name="fs_algorithm_selector">
+                    <param name="selected_algorithm" value="RFE" />
+                    <conditional name="estimator_selector">
+                        <param name="selected_module" value="xgboost" />
+                        <param name="selected_estimator" value="XGBRegressor" />
+                        <param name="text_params" value="random_state=0" />
                     </conditional>
                 </conditional>
-            </repeat>
+            </conditional>
             <section name="final_estimator">
                 <conditional name="estimator_selector">
                     <param name="selected_module" value="none" />
@@ -560,25 +492,17 @@ dump_model_to_h5(out_obj, '$outfile', verbose=0)
             <output name="outfile" file="pipeline12" compare="sim_size" delta="5" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="None" />
-                </conditional>
-            </repeat>
-            <section name="final_estimator">
-                <conditional name="estimator_selector">
-                    <param name="selected_module" value="ensemble" />
-                    <param name="selected_estimator" value="RandomForestClassifier" />
-                </conditional>
-            </section>
+            <conditional name="component_selector">
+                <param name="component_type" value="None" />
+            </conditional>
+            <param name="selected_module" value="ensemble" />
+            <param name="selected_estimator" value="RandomForestClassifier" />
             <output name="outfile" file="RandomForestClassifier.h5mlm" compare="sim_size" delta="5" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="IRAPS" />
-                </conditional>
-            </repeat>
+            <conditional name="component_selector">
+                <param name="component_type" value="IRAPS" />
+            </conditional>
             <section name="final_estimator">
                 <conditional name="estimator_selector">
                     <param name="selected_module" value="none" />
@@ -587,11 +511,9 @@ dump_model_to_h5(out_obj, '$outfile', verbose=0)
             <output name="outfile" file="pipeline14" compare="sim_size" delta="5" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="None" />
-                </conditional>
-            </repeat>
+            <conditional name="component_selector">
+                <param name="component_type" value="None" />
+            </conditional>
             <section name="final_estimator">
                 <conditional name="estimator_selector">
                     <param name="selected_module" value="binarize_target" />
@@ -602,16 +524,14 @@ dump_model_to_h5(out_obj, '$outfile', verbose=0)
             <output name="outfile" file="pipeline15" compare="sim_size" delta="5" />
         </test>
         <test>
-            <repeat name="pipeline_component">
-                <conditional name="component_selector">
-                    <param name="component_type" value="preprocessors" />
-                    <conditional name="encoder_selection">
-                        <param name="encoder_type" value="GenomeOneHotEncoder" />
-                        <param name="seq_length" value="1000" />
-                        <param name="padding" value="True" />
-                    </conditional>
+            <conditional name="component_selector">
+                <param name="component_type" value="preprocessors" />
+                <conditional name="encoder_selection">
+                    <param name="encoder_type" value="GenomeOneHotEncoder" />
+                    <param name="seq_length" value="1000" />
+                    <param name="padding" value="True" />
                 </conditional>
-            </repeat>
+            </conditional>
             <section name="final_estimator">
                 <conditional name="estimator_selector">
                     <param name="selected_module" value="custom_estimator" />

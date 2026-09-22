@@ -22,8 +22,8 @@ from sklearn.metrics import (
 )
 from sklearn.pipeline import Pipeline
 
-from keras.models import model_from_json
-from keras.utils import plot_model
+from tensorflow.keras.models import model_from_json
+from tensorflow.keras.utils import plot_model
 
 
 safe_eval = SafeEval()

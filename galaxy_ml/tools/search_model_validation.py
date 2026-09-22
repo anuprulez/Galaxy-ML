@@ -28,6 +28,7 @@ from sklearn import (cluster, decomposition, feature_selection,
 from sklearn.exceptions import FitFailedWarning
 from sklearn.model_selection import _search, _validation
 from sklearn.model_selection._validation import _score, cross_validate
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 
 from skopt import BayesSearchCV
@@ -568,7 +569,7 @@ def main(inputs, infile_estimator, infile1, infile2,
     if options['error_score']:
         options['error_score'] = 'raise'
     else:
-        options['error_score'] = np.nan
+        options['error_score'] = np.NaN
     if options['refit'] and isinstance(options['scoring'], dict):
         options['refit'] = primary_scoring
     if 'pre_dispatch' in options and options['pre_dispatch'] == '':
@@ -613,7 +614,7 @@ def main(inputs, infile_estimator, infile1, infile2,
                 searcher, X, y, groups=groups,
                 scoring=options['scoring'], cv=outer_cv,
                 n_jobs=N_JOBS, verbose=options['verbose'],
-                params={'groups': groups},
+                fit_params={'groups': groups},
                 return_estimator=(params['save'] == 'save_estimator'),
                 error_score=options['error_score'],
                 return_train_score=True)
@@ -626,7 +627,7 @@ def main(inputs, infile_estimator, infile1, infile2,
                         scoring=options['scoring'],
                         cv=outer_cv, n_jobs=N_JOBS,
                         verbose=options['verbose'],
-                        params={'groups': groups},
+                        fit_params={'groups': groups},
                         return_estimator=(params['save'] == 'save_estimator'),
                         error_score=options['error_score'],
                         return_train_score=True)

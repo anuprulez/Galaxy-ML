@@ -103,7 +103,7 @@
         <expand macro="keras_constraints_options">
           <param argument="min_value" type="float" value="0." help="the minimum norm for the incoming weights." />
           <param argument="max_value" type="float" value="1." help="the maximum norm for the incoming weights." />
-          <param argument="rate" type="float" value="1." help="rate for enforcing the constraint." />
+          <param argument="max_value" type="float" value="1." help="rate for enforcing the constraint." />
         </expand>
       </when>
     </conditional>
@@ -670,7 +670,7 @@
   <xml name="layer_ReLU">
     <param argument="max_value" type="float" value="" min="0." help="float >= 0. Maximum activation value." />
     <param argument="negative_slope" type="float" value="0." min="0." help="float >= 0. Negative slope coefficient." />
-    <param argument="threshold" type="float" value="0." help="float. Threshold value for thresholded activation." />
+    <param argument="max_value" type="float" value="0." help="float. Threshold value for thresholded activation." />
     <yield />
   </xml>
 
@@ -765,9 +765,7 @@
           <expand macro="keras_callback_common_options">
             <param argument="save_best_only" type="boolean" truevalue="booltrue" falsevalue="boolfalse" checked="false" help="If True, the latest best model according to the quantity monitored will not be overwritten." />
             <param argument="save_weights_only" type="boolean" truevalue="booltrue" falsevalue="boolfalse" checked="true" help="If True, then only the model's weights will be saved, else the full model is saved." />
-            <param argument="save_freq" type="select" label="Checkpoint frequency">
-                <option value="epoch">Every epoch</option>
-            </param>
+            <param argument="period" type="integer" value="1" min="1" help="Interval (number of epochs) between checkpoints." />
           </expand>
         </when>-->
         <when value="TerminateOnNaN" />
