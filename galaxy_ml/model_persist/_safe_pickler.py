@@ -106,7 +106,8 @@ class _SafePickler(pickle.Unpickler, object):
 
         canonical = new_global.__module__ + '.' + name
         if new_global.__module__ != module and canonical not in self.whitelist:
-            raise pickle.UnpicklingError(f"Global alias '{canonical}' is forbidden")
+            raise pickle.UnpicklingError(
+                f"Global alias '{canonical}' is forbidden")
         return new_global
 
 

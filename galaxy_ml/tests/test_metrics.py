@@ -9,9 +9,10 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import get_scorer
 
-r2_scorer = get_scorer("r2")
 from sklearn.model_selection import cross_validate
 
+
+r2_scorer = get_scorer("r2")
 
 warnings.simplefilter('ignore')
 

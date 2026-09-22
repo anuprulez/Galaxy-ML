@@ -154,7 +154,8 @@ def test_gbc_dump_and_load():
 
 
 def test_xgb_dump_and_load(tmp_path):
-    xgbc = XGBClassifier(n_estimators=5, max_depth=2, random_state=42, n_jobs=1)
+    xgbc = XGBClassifier(
+        n_estimators=5, max_depth=2, random_state=42, n_jobs=1)
     h5_path = str(tmp_path / 'xgb.h5')
     model_persist.dump_model_to_h5(xgbc, h5_path)
     restored = model_persist.load_model_from_h5(h5_path)
@@ -172,7 +173,8 @@ def test_xgb_dump_and_load(tmp_path):
     model_persist.dump_model_to_h5(xgbc, h5_path)
     from_h5 = model_persist.load_model_from_h5(h5_path)
     for restored in (model_persist.loadc(model_dict), from_json, from_h5):
-        np.testing.assert_array_equal(restored.predict(X_test), xgbc.predict(X_test))
+        np.testing.assert_array_equal(
+            restored.predict(X_test), xgbc.predict(X_test))
         np.testing.assert_allclose(
             restored.predict_proba(X_test), xgbc.predict_proba(X_test))
 
@@ -242,7 +244,8 @@ def test_imblearn_dump_and_load():
 def test_safe_load_model():
     payload = io.BytesIO(pickle.dumps(gbc))
     restored = model_persist.safe_load_model(payload)
-    np.testing.assert_array_equal(restored.predict(X_test), gbc.predict(X_test))
+    np.testing.assert_array_equal(
+        restored.predict(X_test), gbc.predict(X_test))
     safe_unpickler = model_persist._SafePickler(io.BytesIO())
     with raises(pickle.UnpicklingError, match='forbidden'):
         safe_unpickler.find_class('os', 'system')

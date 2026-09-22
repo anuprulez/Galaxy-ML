@@ -241,7 +241,8 @@ def test_genomic_interval_batch_generator(genomic_generator):
         assert generator.start_radius_ == generator.end_radius_ == 4
         assert generator.surrounding_sequence_radius_ == 12
         assert generator.target_.feature_thresholds == {'binding': 0.5}
-        np.testing.assert_array_equal(generator.target_._feature_thresholds_vec, [0.5])
+        np.testing.assert_array_equal(
+            generator.target_._feature_thresholds_vec, [0.5])
         assert generator.sample_from_intervals_[0] == ('chr1', 100, 120)
         assert generator.interval_lengths_ == list(range(20, 68, 4))
 
@@ -295,8 +296,8 @@ def test_genomic_variant_batch_generator(genomic_files):
         references = np.concatenate([next(ref_flow), next(ref_flow)])
         assert variants.shape == references.shape == (4, 32, 4)
         sequence = 'ACGT' * 512
-        for idx, (pos, alt) in enumerate(((101, 'G'), (202, 'T'),
-                                        (301, 'C'), (301, 'T'))):
+        for idx, (pos, alt) in enumerate(
+                ((101, 'G'), (202, 'T'), (301, 'C'), (301, 'T'))):
             bases = sequence[pos - 16:pos + 16]
             expected_ref = np.eye(4)[[BASE_TO_INDEX[b] for b in bases]]
             expected_alt = expected_ref.copy()

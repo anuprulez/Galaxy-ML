@@ -21,8 +21,8 @@ def genomic_files(tmp_path):
         '1\t202\tsnv2\tC\tT\t.\tPASS\t.\n'
         '1\t301\tmulti\tA\tC,T\t.\tPASS\t.\n')
     return dict(ref_genome_path=str(reference), intervals_path=str(intervals),
-                target_path=str(Path(__file__).parent / 'data' /
-                                'genomic_targets.bed.gz'),
+                target_path=str(Path(__file__).parent / 'data'
+                                / 'genomic_targets.bed.gz'),
                 vcf_path=str(variants))
 
 

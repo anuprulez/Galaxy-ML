@@ -174,7 +174,7 @@
         </data>
     </outputs>
     <tests>
-        <test>
+        <test expect_num_outputs="4">
             <conditional name="experiment_schemes">
                 <param name="selected_exp_scheme" value="train_val" />
                 <param name="infile_estimator" value="keras_batch_model05" ftype="h5mlm" />
@@ -233,6 +233,7 @@
                         <param name="secondary_scoring" value="average_precision" />
                     </conditional>
                 </section>
+                <param name="save" value="save_estimator,save_prediction" />
             </conditional>
             <conditional name="input_options">
                 <param name="infile_images" value="cifar-10_500.zip" ftype="zip" />
@@ -248,8 +249,7 @@
                     <param name="seed" value="141747174" />
                 </section>
             </conditional>
-            <param name="save" value="save_estimator,save_prediction" />
-            <output name="outfile_result" >
+            <output name="outfile_result">
                 <assert_contents>
                     <has_n_columns n="5" />
                     <has_text text="0.1" />
@@ -269,7 +269,7 @@
                 </assert_contents>
             </output>
         </test>
-        <test>
+        <test expect_num_outputs="1">
             <conditional name="experiment_schemes">
                 <param name="selected_exp_scheme" value="model_predict" />
                 <param name="infile_estimator" value="image_dl_model01" ftype="h5mlm" />
@@ -288,14 +288,14 @@
                     <param name="seed" value="141747174" />
                 </section>
             </conditional>
-            <output name="outfile_result" >
+            <output name="outfile_result">
                 <assert_contents>
                     <has_n_columns n="10" />
                     <has_text text="0.1" />
                 </assert_contents>
             </output>
         </test>
-        <test>
+        <test expect_num_outputs="3">
             <conditional name="experiment_schemes">
                 <param name="selected_exp_scheme" value="model_eval" />
                 <param name="infile_estimator" value="image_dl_model01" ftype="h5mlm" />
@@ -321,7 +321,7 @@
                     <param name="seed" value="141747174" />
                 </section>
             </conditional>
-            <output name="outfile_result" >
+            <output name="outfile_result">
                 <assert_contents>
                     <has_n_columns n="5" />
                     <has_text text="0.1" />

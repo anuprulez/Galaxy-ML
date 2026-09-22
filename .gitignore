@@ -25,3 +25,7 @@ galaxy_ml/*.png
 # Packaging output
 *.egg-info/
 dist/
+
+# Local Galaxy tool-test environment and dependency resolver
+.venv-tool-tests/
+.planemo-local/

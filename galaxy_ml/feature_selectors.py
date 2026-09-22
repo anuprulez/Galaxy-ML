@@ -34,9 +34,9 @@ def _dynamic_rfe_score(rfe, estimator, X, y, train, test, scorer):
     X_train, y_train = _safe_split(estimator, X, y, train)
     X_test, y_test = _safe_split(estimator, X, y, test, train)
     rfe = clone(rfe)
-    rfe._fit(X_train, y_train,
-             lambda fitted, features: scorer(fitted, X_test[:, features],
-                                              y_test))
+    rfe._fit(
+        X_train, y_train,
+        lambda fitted, features: scorer(fitted, X_test[:, features], y_test))
     return rfe.scores_
 
 

@@ -97,7 +97,8 @@ class IRAPSCore(six.with_metaclass(ABCMeta, BaseEstimator)):
         """
         SAMPLE_SIZE = [0.25, 0.75]
 
-        X, y = check_X_y(X, y, accept_sparse=['csr', 'csc'], multi_output=False)
+        X, y = check_X_y(
+            X, y, accept_sparse=['csr', 'csc'], multi_output=False)
         n_samples = X.shape[0]
         min_samples = int(n_samples * SAMPLE_SIZE[0])
         max_samples = int(n_samples * SAMPLE_SIZE[1])

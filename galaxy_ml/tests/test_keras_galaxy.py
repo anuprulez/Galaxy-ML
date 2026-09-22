@@ -613,7 +613,8 @@ def test_keras_galaxy_model_callbacks():
         {'callback_selection':
             {'monitor': 'val_loss', 'save_best_only': True,
              'period': 1, 'save_weights_only': True,
-             'filepath': './tests/weights.{epoch:02d}-{val_loss:.2f}.weights.h5',
+             'filepath': ('./tests/weights.{epoch:02d}-'
+                          '{val_loss:.2f}.weights.h5'),
              'callback_type': 'ModelCheckpoint', 'mode': 'auto'}}]
 
     estimator = KerasGClassifier(config, optimizer='adam',
@@ -824,7 +825,8 @@ def test_keras_fasta_protein_batch_classifier():
     assert 0.45 <= got <= 0.52, got
 
 
-def test_keras_genomic_intervals_batch_classifier(genomic_generator, monkeypatch):
+def test_keras_genomic_intervals_batch_classifier(
+        genomic_generator, monkeypatch):
     model = Sequential([
         keras.Input(shape=(32, 4)), Conv1D(2, 3, activation='relu'),
         Flatten(), Dense(1, activation='sigmoid')])
@@ -893,7 +895,8 @@ def test_predict_generator(genomic_generator, tmp_path):
         path = tmp_path / 'batch_classifier.h5'
         clf.save_model(path)
         with h5py.File(path, 'r') as h:
-            assert h['class_name'][()].decode('utf8') == 'KerasGBatchClassifier'
+            assert (h['class_name'][()].decode('utf8')
+                    == 'KerasGBatchClassifier')
             params = json.loads(h['params'][()].decode('utf8'))
             assert params.get('data_batch_generator') is None
         restored = load_model(path)

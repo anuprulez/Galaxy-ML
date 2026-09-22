@@ -96,7 +96,8 @@ def _fit_and_score(estimator, X, y, scorer, train, test, verbose,
         return _sk_fit_and_score(estimator, X, y, scorer=scorer,
                                  train=train, test=test, verbose=verbose,
                                  parameters=parameters, fit_params=fit_params,
-                                 score_params=score_params or {}, caller=caller,
+                                 score_params=score_params or {},
+                                 caller=caller,
                                  callback_ctx=callback_ctx,
                                  return_train_score=return_train_score,
                                  return_parameters=return_parameters,
@@ -117,9 +118,9 @@ def _fit_and_score(estimator, X, y, scorer, train, test, verbose,
     progress_msg = ""
     if verbose > 2:
         if split_progress is not None:
-            progress_msg = f" {split_progress[0]+1}/{split_progress[1]}"
+            progress_msg = f" {split_progress[0] + 1}/{split_progress[1]}"
         if candidate_progress and verbose > 9:
-            progress_msg += (f"; {candidate_progress[0]+1}/"
+            progress_msg += (f"; {candidate_progress[0] + 1}/"
                              f"{candidate_progress[1]}")
 
     if verbose > 1:

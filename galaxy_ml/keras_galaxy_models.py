@@ -76,15 +76,17 @@ def _model_from_config(model_class, config):
         if value.get('class_name') in ('LSTM', 'GRU', 'SimpleRNN'):
             options = value['config']
             if options.pop('time_major', False):
-                raise ValueError('Keras 3 requires batch-major recurrent inputs')
+                raise ValueError(
+                    'Keras 3 requires batch-major recurrent inputs')
         return value
 
     custom_objects = {'tf': tf}
-    custom_objects.update({name: value for name, value in vars(keras.layers).items()
-                           if isinstance(value, type)})
+    custom_objects.update({
+        name: value for name, value in vars(keras.layers).items()
+        if isinstance(value, type)})
     with keras.saving.custom_object_scope(custom_objects):
-        return model_class.from_config(migrate(config),
-                                        custom_objects=custom_objects)
+        return model_class.from_config(
+            migrate(config), custom_objects=custom_objects)
 
 
 class BaseOptimizer(BaseEstimator):
@@ -180,8 +182,8 @@ class MetricCallback(Callback, BaseEstimator):
 
         pred_probas = self.model.predict(x_val)
         pred_labels = (pred_probas > 0.5).astype('int32')
-        preds = pred_labels if getattr(scorer, '_response_method', 'predict') == \
-            'predict' else pred_probas
+        response_method = getattr(scorer, '_response_method', 'predict')
+        preds = pred_labels if response_method == 'predict' else pred_probas
 
         # binaray
         if y_val.ndim == 1 or y_val.shape[-1] == 1:
@@ -1350,7 +1352,6 @@ class KerasGBatchClassifier(KerasGClassifier):
         check_params(kwargs, Model.predict)
 
         batch_size = kwargs.pop('batch_size', None) or self.batch_size
-        n_jobs = self.n_jobs
         steps = kwargs.pop('steps', None)
         if not steps:
             steps = self.prediction_steps
@@ -1402,7 +1403,6 @@ class KerasGBatchClassifier(KerasGClassifier):
         check_params(kwargs, Model.predict)
         check_params(kwargs, Model.evaluate)
 
-        n_jobs = self.n_jobs
         batch_size = self.batch_size or 32
         steps = kwargs.pop('steps', None)
         if not steps:
@@ -1476,8 +1476,9 @@ class KerasGBatchClassifier(KerasGClassifier):
             scores = {}
             try:
                 for name, scorer in scorers.items():
-                    preds = (pred_labels if scorer._response_method == 'predict'
-                             else pred_probas)
+                    preds = (
+                        pred_labels if scorer._response_method == 'predict'
+                        else pred_probas)
                     score_func = scorer._score_func \
                         if t_type == 'binary' \
                         else compute_score
