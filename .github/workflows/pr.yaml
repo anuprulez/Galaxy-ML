@@ -58,7 +58,7 @@ jobs:
       run: pip install wheel
     - name: Install flake8
       run: pip install flake8 flake8-import-order
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Fake a Planemo run to update cache and determine commit range, repositories, and chunks
@@ -93,7 +93,7 @@ jobs:
     steps:
     # checkout the repository
     # and use it as the current working directory
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - uses: actions/setup-python@v1
@@ -112,7 +112,7 @@ jobs:
         mode: lint
         repository-list: ${{ needs.setup.outputs.repository-list }}
         tool-list: ${{ needs.setup.outputs.tool-list }}
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       if: ${{ failure() }}
       with:
         name: 'Tool linting output'
@@ -129,7 +129,7 @@ jobs:
       matrix:
         python-version: ['3.12']
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - uses: actions/setup-python@v1
@@ -145,7 +145,7 @@ jobs:
       run: pip install flake8 flake8-import-order
     - name: Flake8
       run: echo '${{ needs.setup.outputs.repository-list }}' | xargs -d '\n' flake8 --ignore=F401,F821,I100,W503 --output-file pylint_report.txt --tee
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       if: ${{ failure() }}
       with:
         name: 'Python linting output'
@@ -175,7 +175,7 @@ jobs:
     steps:
     # checkout the repository
     # and use it as the current working directory
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - uses: actions/setup-python@v1
@@ -203,7 +203,7 @@ jobs:
         galaxy-branch: ${{ env.GALAXY_BRANCH }}
         chunk: ${{ matrix.chunk }}
         chunk-count: ${{ needs.setup.outputs.chunk-count }}
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: 'Tool test output ${{ matrix.chunk }}'
         path: upload
@@ -222,7 +222,7 @@ jobs:
       matrix:
         python-version: ['3.12']
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v4
       with:
         path: artifacts
     - uses: actions/setup-python@v1
@@ -240,7 +240,7 @@ jobs:
       with:
         mode: combine
         html-report: true
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: 'All tool test results'
         path: upload
@@ -260,7 +260,7 @@ jobs:
       matrix:
         python-version: ['3.12']
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - uses: actions/setup-python@v1
