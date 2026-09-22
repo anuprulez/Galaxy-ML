@@ -43,15 +43,18 @@ jobs:
           name: Build Environment
           command: |
             pip install planemo
-            python -m venv .venv-tool-tests
-            .venv-tool-tests/bin/python -m pip install -e .
-            .venv-tool-tests/bin/python scripts/configure_tool_test_dependencies.py
+            if [[ ! -d ~/miniconda3 ]]; then
+                wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh &&
+                bash miniconda.sh -b -f -p ~/miniconda3;
+            else
+                echo "Using cached miniconda";
+            fi
       - run:
           name: Tool Tests
           command: |
             cd galaxy_ml/tools
             TESTFILES=$(ls -I "*macros.xml" | grep .xml | circleci tests split)
-            planemo test --dependency_resolvers_config_file ../../.planemo-local/dependency_resolvers.xml ${TESTFILES}
+            planemo test ${TESTFILES}
 workflows:
   version: 2
   build_and_test:
