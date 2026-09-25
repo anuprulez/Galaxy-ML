@@ -65,6 +65,25 @@ def to_list(value):
     return list(value) if isinstance(value, (tuple, list)) else [value]
 
 
+def _accuracy_from_evaluation(model, *args, **kwargs):
+    """Evaluate a model and return its configured accuracy metric.
+
+    Keras 3 exposes compiled metrics under the placeholder name
+    ``compile_metrics`` in ``model.metrics_names``. Asking for a result
+    dictionary preserves the actual configured names (for example ``acc``
+    or ``accuracy``) across Keras versions.
+    """
+    kwargs['return_dict'] = True
+    outputs = model.evaluate(*args, **kwargs)
+    for name in ('acc', 'accuracy'):
+        if name in outputs:
+            return outputs[name]
+
+    raise ValueError('The model is not configured to compute accuracy. '
+                     'You should pass `metrics=["accuracy"]` to '
+                     'the `model.compile()` method.')
+
+
 def _model_from_config(model_class, config):
     """Load current configs and the supported subset of Keras 2 configs."""
     def migrate(value):
@@ -1050,15 +1069,7 @@ class KerasGClassifier(ClassifierMixin, BaseKerasModel):
         if self.loss == 'categorical_crossentropy' and len(y.shape) != 2:
             y = to_categorical(y)
 
-        outputs = self.model_.evaluate(X, y, **kwargs)
-        outputs = to_list(outputs)
-        for name, output in zip(self.model_.metrics_names, outputs):
-            if name in ('acc', 'accuracy'):
-                return output
-
-        raise ValueError('The model is not configured to compute accuracy. '
-                         'You should pass `metrics=["accuracy"]` to '
-                         'the `model.compile()` method.')
+        return _accuracy_from_evaluation(self.model_, X, y, **kwargs)
 
     def save_model(self, file_or_group, extra_attrs=['classes_'],
                    skip_params=None):
@@ -1408,19 +1419,11 @@ class KerasGBatchClassifier(KerasGClassifier):
         if not steps:
             steps = self.prediction_steps
 
-        outputs = self.model_.evaluate(
+        return _accuracy_from_evaluation(
+            self.model_,
             data_generator_.flow(X, y=y, batch_size=batch_size),
             steps=steps,
             **kwargs)
-
-        outputs = to_list(outputs)
-        for name, output in zip(self.model_.metrics_names, outputs):
-            if name in ('acc', 'accuracy'):
-                return output
-
-        raise ValueError('The model is not configured to compute accuracy. '
-                         'You should pass `metrics=["accuracy"]` to '
-                         'the `model.compile()` method.')
 
     def evaluate(self, X_test, y_test=None, scorers=None, error_score='raise',
                  steps=None, batch_size=None):
