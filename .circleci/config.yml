@@ -37,7 +37,8 @@ jobs:
               "planemo==0.74.11" \
               "galaxy-tool-util==21.9.2" \
               "galaxy-util==21.9.0" \
-              "pydantic==1.10.24"
+              "pydantic==1.10.24" \
+              "packaging==21.3"
             cd galaxy_ml/tools
             planemo lint
   tool_test:
